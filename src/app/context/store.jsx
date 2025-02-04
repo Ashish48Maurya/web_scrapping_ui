@@ -4,12 +4,12 @@ export const AuthContext = createContext();
 
 
 export const AuthProvider = ({ children }) => {
-    const [link,setLink] = useState('');
-    const [data,setData] = useState([]);
+    const [link, setLink] = useState(null);
+    const [setNo_of_vuln, no_of_vuln] = useState(null);
 
     return (
         <AuthContext.Provider
-            value={{ link, setLink, data, setData }}
+            value={{ link, setLink, setNo_of_vuln, no_of_vuln }}
         >
             {children}
         </AuthContext.Provider>

@@ -8,13 +8,11 @@ import { Search, Shield, AlertTriangle, Package, Building2, Loader2 } from "luci
 import { toast } from "react-hot-toast"
 import { motion } from "framer-motion"
 import Link from "next/link"
-import { useAuth } from "./context/store"
 
 export default function SearchPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [searchResults, setSearchResults] = useState([])
   const [isLoading, setIsLoading] = useState(false)
-  const { setData, setLink } = useAuth();
 
   const uniqueVendors = useMemo(() => {
     return new Set(searchResults.map((software) => software.vendor_name)).size
@@ -31,7 +29,7 @@ export default function SearchPage() {
     }
     setIsLoading(true)
     try {
-      const res = await fetch(`https://cve-47z5.onrender.com/api?tool=${searchTerm}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/tool?tool=${searchTerm}`, {
         method: "GET",
       })
       const data = await res.json()
@@ -45,14 +43,20 @@ export default function SearchPage() {
   }
 
   const handleSetting = (software) => {
-    setLink(software.vuln_link)
-    setData(software.details[0]);
+    // setLink(software.vuln_link)
+    // setNo_of_vuln(software.no_of_vuln)
+    localStorage.setItem('link', software.vuln_link);
+    localStorage.setItem('vuln_link', software.no_of_vuln);
   }
 
   const handleKeyPress = (e) => {
     if (e.key === "Enter") {
       handleSearch()
     }
+  }
+
+  const setLink = (link) => {
+    localStorage.setItem('vendor_link', link);
   }
 
   return (
@@ -81,14 +85,6 @@ export default function SearchPage() {
             onKeyPress={handleKeyPress}
             disabled={isLoading}
           />
-          {/* <Button
-            onClick={handleSearch}
-            className="h-12 px-6 rounded-r-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors duration-200 flex items-center justify-center"
-            disabled={isLoading}
-          >
-            {isLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Search className="h-5 w-5 mr-2" />}
-            {isLoading ? "Searching..." : "Search"}
-          </Button> */}
         </div>
 
         <motion.div
@@ -167,7 +163,7 @@ export default function SearchPage() {
                         </Link>
                       </TableCell>
                       <TableCell className="text-indigo-600 hover:text-indigo-800 cursor-pointer font-bold text-md lg:text-lg">
-                        <Link href={software.vendor_link} target="_blank" rel="noopener noreferrer">
+                        <Link href='/vendor' target="_blank" rel="noopener noreferrer" onClick={() => setLink(software.vendor_link)}>
                           {software.vendor_name}
                         </Link>
                       </TableCell>
@@ -182,8 +178,8 @@ export default function SearchPage() {
                           <Link
                             href='/details'
                             onClick={() => handleSetting(software)}
-                            // target="_blank"
-                            // rel="noopener noreferrer"
+                            target="_blank"
+                            rel="noopener noreferrer"
                           >
                             {software.no_of_vuln}
                           </Link>
