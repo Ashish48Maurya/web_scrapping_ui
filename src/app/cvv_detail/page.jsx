@@ -10,31 +10,10 @@ import { useEffect, useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
 
 
-const sampleData = [
-    {
-        baseScore: 5.9,
-        baseSeverity: "MEDIUM",
-        cvssVector: "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
-        exploitabilityScore: 2.2,
-        impactScore: 3.6,
-        scoreSource: "NIST",
-        firstSeen: "2023-12-01",
-    },
-    {
-        baseScore: 7.4,
-        baseSeverity: "HIGH",
-        cvssVector: "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
-        exploitabilityScore: 2.2,
-        impactScore: 5.2,
-        scoreSource: "Red Hat, Inc.",
-        firstSeen: "2023-12-01",
-    },
-]
-
 export default function page() {
     const [isLoading, setIsLoading] = useState(false);
-    const cvv_id = localStorage.getItem('cvv_id');
-    const cvv_link = localStorage.getItem('cvv_link');
+    const [cvvId, setCvvId] = useState(null);
+    const [cvvLink, setCvvLink] = useState(null);
     const [data, setData] = useState(null);
     const [copiedIndex, setCopiedIndex] = useState(null)
 
@@ -44,6 +23,13 @@ export default function page() {
         toast.success("CVSS vector copied to clipboard")
         setTimeout(() => setCopiedIndex(null), 2000)
     }
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            setCvvId(localStorage.getItem("cvv_id"));
+            setCvvLink(localStorage.getItem("cvv_link"));
+        }
+    }, []);
 
     const getSeverityColor = (severity) => {
         switch (severity.toUpperCase()) {
@@ -61,7 +47,7 @@ export default function page() {
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/cvvid?link=${cvv_link}`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URI}/api/cvvid?link=${cvvLink}`, {
                 method: "GET",
             });
             const data = await res.json();
@@ -76,8 +62,11 @@ export default function page() {
     };
 
     useEffect(() => {
-        fetchData();
-    }, [])
+        if (cvvLink) {
+            fetchData();
+        }
+    }, [cvvLink]);
+
 
     const getScoreColor = (score) => {
         if (score >= 7) return "bg-red-500/20 text-red-400"
@@ -97,13 +86,13 @@ export default function page() {
                     <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5 }}>
                         <Shield className="h-16 w-16 mx-auto text-blue-400 mb-4" />
                         <h1 className="text-4xl font-bold text-white mb-4">CVSS Scores</h1>
-                        <p className="text-gray-400 max-w-2xl mx-auto text-lg">{cvv_id} Vulnerability Assessment</p>
+                        <p className="text-gray-400 max-w-2xl mx-auto text-lg">{cvvId} Vulnerability Assessment</p>
                     </motion.div>
                 </div>
 
                 <div className="grid gap-6">
                     {isLoading ? (
-                        <TableRow className="flex justify-center items-center">
+                        <TableRow className="flex justify-center items-center border-b-0">
                             <TableCell colSpan={5} className="h-32 text-center">
                                 <div className="flex flex-col items-center justify-center text-gray-500">
                                     <Loader2 className="h-8 w-8 animate-spin mb-2" />
@@ -112,7 +101,7 @@ export default function page() {
                             </TableCell>
                         </TableRow>
                     ) : <>
-                        {data?.map((score, index) => (
+                    {data?.map((score, index) => (
                             <motion.div
                                 key={index}
                                 initial={{ y: 20, opacity: 0 }}

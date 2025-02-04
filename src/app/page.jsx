@@ -59,6 +59,11 @@ export default function SearchPage() {
     localStorage.setItem('vendor_link', link);
   }
 
+
+  const setVersionLink = (link) => {
+    localStorage.setItem('version_link', link);
+  }
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-zinc-900 py-12">
       <div className="mx-auto max-w-6xl space-y-8">
@@ -158,7 +163,7 @@ export default function SearchPage() {
                     <TableRow key={software.serial_no} className="hover:bg-gray-50/50 transition-colors">
                       <TableCell className=" font-bold text-md lg:text-lg">{software.serial_no}</TableCell>
                       <TableCell className=" font-bold text-md lg:text-lg text-indigo-600 hover:text-indigo-800 cursor-pointer">
-                        <Link href={software.product_link} target="_blank" rel="noopener noreferrer">
+                        <Link href='/version' target="_blank" rel="noopener noreferrer" onClick={() => setVersionLink(software.product_link)}>
                           {software.product_name}
                         </Link>
                       </TableCell>

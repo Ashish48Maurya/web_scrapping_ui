@@ -3,7 +3,6 @@ import { motion } from "framer-motion"
 import { AlertTriangle, Calendar, Shield, ArrowUpRight, Loader2, ChevronsLeft, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useAuth } from "../context/store"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { TableCell, TableRow } from "@/components/ui/table"
@@ -12,14 +11,21 @@ import { Button } from "@/components/ui/button"
 
 export default function page() {
     const [isLoading, setIsLoading] = useState(false);
-    const link = localStorage.getItem('link');
-    const no_of_vuln = localStorage.getItem('vuln_link');
+    const [link, setLink] = useState(null);
+    const [no_of_vuln, setNo_of_vuln] = useState(null);
 
     const [data, setData] = useState(null);
     const [buttonData, setButtonData] = useState(null);
-    if (!link || !no_of_vuln) {
-        return <div>loading...</div>
-    }
+
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedLink = localStorage.getItem("link");
+            const storedVuln = localStorage.getItem("vuln_link");
+            setLink(storedLink);
+            setNo_of_vuln(storedVuln);
+        }
+    }, []);
+
 
     const fetchData = async (linkk) => {
         setIsLoading(true);
@@ -31,20 +37,23 @@ export default function page() {
             setData(data[0]);
             setButtonData(data[1]);
         } catch (err) {
-            toast.error(`Error while searching for software: ` + err.message);
+            toast.error(`Error while searching for software details: ` + err.message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchData(link);
-    }, [link, no_of_vuln]);
-
     const handleClick = async (vuln) => {
         localStorage.setItem('cvv_link', vuln.href);
         localStorage.setItem('cvv_id', vuln.text);
     }
+
+    useEffect(() => {
+        if (link && no_of_vuln) { 
+            fetchData(link);
+        }
+    }, [link, no_of_vuln]);
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-zinc-900 py-12 px-4">
@@ -60,7 +69,7 @@ export default function page() {
                 </div>
 
                 {isLoading ? (
-                    <TableRow className="flex justify-center items-center">
+                    <TableRow className="flex justify-center items-center border-b-0">
                         <TableCell colSpan={5} className="h-32 text-center">
                             <div className="flex flex-col items-center justify-center text-gray-500">
                                 <Loader2 className="h-8 w-8 animate-spin mb-2" />
@@ -92,10 +101,10 @@ export default function page() {
                                                     <Badge
                                                         variant="outline"
                                                         className={`px-3 py-1 text-sm lg:text-md ${vuln.secondDiv[0] >= 7
-                                                                ? "border-red-500 text-red-400"
-                                                                : vuln.secondDiv[0] >= 4
-                                                                    ? "border-yellow-500 text-yellow-400"
-                                                                    : "border-green-500 text-green-400"
+                                                            ? "border-red-500 text-red-400"
+                                                            : vuln.secondDiv[0] >= 4
+                                                                ? "border-yellow-500 text-yellow-400"
+                                                                : "border-green-500 text-green-400"
                                                             }`}
                                                     >
                                                         <AlertTriangle className="w-4 h-4 mr-1" />

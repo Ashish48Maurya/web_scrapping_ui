@@ -1,20 +1,28 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { Shield, TrendingUp, AlertTriangle, BarChart3 } from "lucide-react"
+import { Shield, TrendingUp, AlertTriangle, BarChart3, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useEffect, useState } from "react"
 import toast from "react-hot-toast"
+import { TableCell, TableRow } from "@/components/ui/table"
 
 
 export default function VulnerabilityTrendsPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const vendor_link = localStorage.getItem('vendor_link');
+  const [vendor_link, setVendorLink] = useState(null);
   const [table1Row, setTable1Row] = useState([]);
   const [table2Row, setTable2Row] = useState([]);
   const [table1Col, setTable1Col] = useState([]);
   const [table2Col, setTable2Col] = useState([]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedLink = localStorage.getItem("vendor_link");
+      setVendorLink(storedLink);
+    }
+  }, []);
 
   const fetchData = async (link) => {
     setIsLoading(true);
@@ -43,10 +51,10 @@ export default function VulnerabilityTrendsPage() {
     return table1Row.reduce((acc, key, index) => {
       let formattedKey = key
         .replace(/\s+/g, '')
-        .replace(/[^a-zA-Z]/g, '') 
-        .replace(/^./, str => str.toLowerCase()); 
+        .replace(/[^a-zA-Z]/g, '')
+        .replace(/^./, str => str.toLowerCase());
 
-      let value = row[index]?.trim(); 
+      let value = row[index]?.trim();
 
       acc[formattedKey] = value !== "" && !isNaN(value) ? Number(value) : value;
 
@@ -62,10 +70,10 @@ export default function VulnerabilityTrendsPage() {
     return table2Row.reduce((acc, key, index) => {
       let formattedKey = key
         .replace(/\s+/g, '')
-        .replace(/[^a-zA-Z]/g, '') 
-        .replace(/^./, str => str.toLowerCase()); 
+        .replace(/[^a-zA-Z]/g, '')
+        .replace(/^./, str => str.toLowerCase());
 
-      let value = row[index]?.trim(); 
+      let value = row[index]?.trim();
 
       acc[formattedKey] = value !== "" && !isNaN(value) ? Number(value) : value;
 
@@ -74,9 +82,10 @@ export default function VulnerabilityTrendsPage() {
   });
 
   useEffect(() => {
-    fetchData(vendor_link);
-  }, [])
-
+    if (vendor_link) {
+      fetchData(vendor_link);
+    }
+  }, [vendor_link])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-slate-900 to-zinc-900 py-12 px-4">
@@ -90,119 +99,129 @@ export default function VulnerabilityTrendsPage() {
             </p>
           </motion.div>
         </div>
+        {
+          isLoading ? (
+            <TableRow className="flex justify-center items-center border-b-0">
+              <TableCell colSpan={5} className="h-32 text-center">
+                <div className="flex flex-col items-center justify-center text-gray-500">
+                  <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                  <p>Searching for results...</p>
+                </div>
+              </TableCell>
+            </TableRow>
+          ) : <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="bg-black/40 border-blue-500/20 backdrop-blur-sm">
+              <CardContent className="p-6">
+                <Tabs defaultValue="trends" className="space-y-6">
+                  <TabsList className="bg-black/40">
+                    <TabsTrigger value="trends" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-500 text-white">
+                      Vulnerability Trends
+                    </TabsTrigger>
+                    <TabsTrigger value="impact" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-500 text-white">
+                      Impact Analysis
+                    </TabsTrigger>
+                  </TabsList>
 
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.4 }}
-        >
-          <Card className="bg-black/40 border-blue-500/20 backdrop-blur-sm">
-            <CardContent className="p-6">
-              <Tabs defaultValue="trends" className="space-y-6">
-                <TabsList className="bg-black/40">
-                  <TabsTrigger value="trends" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-500 text-white">
-                    Vulnerability Trends
-                  </TabsTrigger>
-                  <TabsTrigger value="impact" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-500 text-white">
-                    Impact Analysis
-                  </TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="trends" className="overflow-auto">
-                  <div className="inline-block min-w-full align-middle">
-                    <table className="min-w-full divide-y divide-gray-800">
-                      <thead>
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                            Year
-                          </th>
-                          {Object.keys(vulnerabilityData[0] || {})
-                            .slice(1)
-                            .map((key) => (
-                              <th
-                                key={key}
-                                className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                              >
-                                {key.replace(/([A-Z])/g, " $1").trim()}
-                              </th>
-                            ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-800">
-                        {vulnerabilityData.map((row, idx) => (
-                          <tr key={row.year} className="hover:bg-white/5 transition-colors">
-                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-400">
-                              {row.year}
-                            </td>
-                            {Object.entries(row)
+                  <TabsContent value="trends" className="overflow-auto">
+                    <div className="inline-block min-w-full align-middle">
+                      <table className="min-w-full divide-y divide-gray-800">
+                        <thead>
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Year
+                            </th>
+                            {Object.keys(vulnerabilityData[0] || {})
                               .slice(1)
-                              .map(([key, value]) => (
-                                <td key={key} className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                  <div className="flex items-center justify-center w-8 h-8 rounded">
-                                    <div
-                                      className='w-full h-full rounded flex items-center justify-center'
-                                    >
-                                      {value}
-                                    </div>
-                                  </div>
-                                </td>
+                              .map((key) => (
+                                <th
+                                  key={key}
+                                  className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                                >
+                                  {key.replace(/([A-Z])/g, " $1").trim()}
+                                </th>
                               ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-
-                <TabsContent value="impact" className="overflow-auto">
-                  <div className="inline-block min-w-full align-middle">
-                    <table className="min-w-full divide-y divide-gray-800">
-                      <thead>
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                            Year
-                          </th>
-                          {Object.keys(impactData[0] || {})
-                            .slice(1)
-                            .map((key) => (
-                              <th
-                                key={key}
-                                className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
-                              >
-                                {key.replace(/([A-Z])/g, " $1").trim()}
-                              </th>
-                            ))}
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-800">
-                        {impactData.map((row, idx) => (
-                          <tr key={row.year} className="hover:bg-white/5 transition-colors">
-                            <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-400">
-                              {row.year}
-                            </td>
-                            {Object.entries(row)
-                              .slice(1)
-                              .map(([key, value]) => (
-                                <td key={key} className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
-                                  <div className="flex items-center justify-center w-8 h-8 rounded">
-                                    <div
-                                      className='w-full h-full rounded flex items-center justify-center'
-                                    >
-                                      {value}
+                        </thead>
+                        <tbody className="divide-y divide-gray-800">
+                          {vulnerabilityData.map((row, idx) => (
+                            <tr key={row.year} className="hover:bg-white/5 transition-colors">
+                              <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-400">
+                                {row.year}
+                              </td>
+                              {Object.entries(row)
+                                .slice(1)
+                                .map(([key, value]) => (
+                                  <td key={key} className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded">
+                                      <div
+                                        className='w-full h-full rounded flex items-center justify-center'
+                                      >
+                                        {value}
+                                      </div>
                                     </div>
-                                  </div>
-                                </td>
+                                  </td>
+                                ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </TabsContent>
+
+                  <TabsContent value="impact" className="overflow-auto">
+                    <div className="inline-block min-w-full align-middle">
+                      <table className="min-w-full divide-y divide-gray-800">
+                        <thead>
+                          <tr>
+                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
+                              Year
+                            </th>
+                            {Object.keys(impactData[0] || {})
+                              .slice(1)
+                              .map((key) => (
+                                <th
+                                  key={key}
+                                  className="px-4 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                                >
+                                  {key.replace(/([A-Z])/g, " $1").trim()}
+                                </th>
                               ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
-        </motion.div>
+                        </thead>
+                        <tbody className="divide-y divide-gray-800">
+                          {impactData.map((row, idx) => (
+                            <tr key={row.year} className="hover:bg-white/5 transition-colors">
+                              <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-400">
+                                {row.year}
+                              </td>
+                              {Object.entries(row)
+                                .slice(1)
+                                .map(([key, value]) => (
+                                  <td key={key} className="px-4 py-3 whitespace-nowrap text-sm text-gray-300">
+                                    <div className="flex items-center justify-center w-8 h-8 rounded">
+                                      <div
+                                        className='w-full h-full rounded flex items-center justify-center'
+                                      >
+                                        {value}
+                                      </div>
+                                    </div>
+                                  </td>
+                                ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </motion.div>
+        }
       </div>
     </div>
   )
