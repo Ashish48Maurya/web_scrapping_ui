@@ -44,6 +44,7 @@ export default function page() {
         }
     };
 
+    
     const handleClick = async (vuln) => {
         localStorage.setItem('cvv_link', vuln.href);
         localStorage.setItem('cvv_id', vuln.text);
