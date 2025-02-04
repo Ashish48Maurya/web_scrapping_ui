@@ -9,37 +9,6 @@ import Link from "next/link"
 import toast from "react-hot-toast"
 
 
-const initialData = [
-    {
-        version: "0.10.29",
-        language: "-",
-        update: "-",
-        edition: "-",
-        targetPlatform: "-",
-        vulnerabilities: 1,
-        detailsLink: "#",
-    },
-    {
-        version: "0.10.28",
-        language: "-",
-        update: "-",
-        edition: "-",
-        targetPlatform: "-",
-        vulnerabilities: 1,
-        detailsLink: "#",
-    },
-    {
-        version: "0.10.27",
-        language: "-",
-        update: "-",
-        edition: "-",
-        targetPlatform: "-",
-        vulnerabilities: 1,
-        detailsLink: "#",
-    },
-]
-
-
 export default function page() {
     const [data, setData] = useState([])
     const [sortField, setSortField] = useState("version")
@@ -68,11 +37,6 @@ export default function page() {
             setIsLoading(false);
         }
     };
-
-    // const handleClick = async (vuln) => {
-    //     localStorage.setItem('cvv_link', vuln.href);
-    //     localStorage.setItem('cvv_id', vuln.text);
-    // }
 
     useEffect(() => {
         if (version) {
@@ -103,6 +67,10 @@ export default function page() {
         return sortDirection === "asc" ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />
     }
 
+    const setLink = (link) => {
+        localStorage.setItem('no_of_version', link.txt);
+        localStorage.setItem('version_detail_link', link.link);
+    }
 
 return (
     <div className="w-full bg-gradient-to-br from-gray-950 via-slate-900 to-zinc-900 min-h-screen p-6">
@@ -172,7 +140,7 @@ return (
                                                     }
                                                 `}
                                             >
-                                                <Link href={row[5].link} className="flex items-center gap-2">
+                                                <Link href='/version_vuln' className="flex items-center gap-2" onClick={() => setLink(row[5])}>
                                                     {row[5].txt}
                                                 </Link>
                                             </Badge>
